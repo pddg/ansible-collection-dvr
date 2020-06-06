@@ -1,0 +1,35 @@
+---
+- when: dvr_use_vaapi
+  block:
+    - name: Obtain dvr_vaapi_device stats
+      stat:
+        path: "{{ dvr_vaapi_device }}"
+      register: dvr_vaapi_device_path
+
+    - name: VAAPI device exists
+      assert:
+        that:
+          - dvr_vaapi_device|length > 0
+          - dvr_vaapi_device_path.stat.exists
+          - dvr_vaapi_device_path.stat.ischr
+        fail_msg: "Specified VAAPI device ({{ dvr_vaapi_device }}) does not exist."
+        quiet: "{{ ansible_verbosity == 0 }}"
+
+- name: Obtain dvr_tuner_devices stats
+  stat:
+    path: "{{ item }}"
+  loop: "{{ dvr_tuner_devices }}"
+  register: dvr_tuner_devices_stats
+
+- name: Ensure that tuner devices exist
+  assert:
+    that:
+      - item.exists
+      - item.ischr
+    fail_msg: "'{{ item.path }}' does not exist, or it is not a character device."
+    quiet: "{{ ansible_verbosity == 0 }}"
+  loop: "{{ dvr_tuner_devices_stats | json_query('results[].stat.{exists: exists, ischr: ischr, path: path}') }}"
+
+- name: Common docker network exists
+  docker_network:
+    name: "{{ dvr_network_name }}"

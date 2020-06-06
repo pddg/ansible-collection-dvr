@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+    - import_role:
+        name: preparing
+      vars:
+        dvr_use_vaapi: yes
+        dvr_vaapi_device: /dev/dri/card0
+        dvr_tuner_devices:
+          - /dev/pt3video0
+          - /dev/pt3video1
+          - /dev/pt3video2
+          - /dev/pt3video3
+        dvr_network_name: "mirakurun"

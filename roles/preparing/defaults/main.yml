@@ -1,0 +1,10 @@
+---
+dvr_use_vaapi: no
+dvr_vaapi_device: ""
+
+# 共通で利用するDockerネットワーク名
+dvr_network_name: "dvr"
+
+# チューナーデバイスのリスト
+# e.g. ["/dev/pt3video0", "/dev/pt3video1"]
+dvr_tuner_devices: []
