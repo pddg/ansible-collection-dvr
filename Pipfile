@@ -11,6 +11,10 @@ molecule = "*"
 molecule-vagrant = "*"
 jmespath = "*"
 ansible-lint = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+markdown-cjk-spacing = "*"
+mkdocs-minify-plugin = "*"
 
 [requires]
 python_version = "3.8"
