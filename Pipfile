@@ -10,6 +10,7 @@ ansible = "*"
 molecule = "*"
 molecule-vagrant = "*"
 jmespath = "*"
+ansible-lint = "*"
 
 [requires]
 python_version = "3.8"
