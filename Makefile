@@ -13,5 +13,14 @@ molecule-%:
 	cd roles/${*} && $(MOLECULE_CMD) test -s $(scenario) --parallel
 
 test-%:
-	pushd tests && $(PLAYBOOK_CMD) -i hosts.yml roles/${*}/test.yml -K
+	cd tests && $(PLAYBOOK_CMD) -i hosts.yml roles/${*}/test.yml -K
+
+doc-serve:
+	pipenv run mkdocs serve
+
+doc-build:
+	pipenv run mkdocs build
+
+doc-release:
+	pipenv run mkdocs gh-deploy
 	

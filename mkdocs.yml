@@ -1,0 +1,28 @@
+site_name: Ansible Collection - pddg.dvr
+
+theme:
+  name: material
+  language: ja
+plugins:
+  - search:
+      lang:
+        - 'ja'
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - toc:
+      permalink: true
+      separator: '_'
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Introduction: 'index.md'
+  - Roles:
+    - preparing: 'roles/preparing.md'
+  - How to develop: 'develop.md'

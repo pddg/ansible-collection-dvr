@@ -1,0 +1,53 @@
+---
+name: Build and Release Documents
+
+on:
+  push:
+    paths:
+      - "docs/**/*.md"
+      - "mkdocs.yml"
+      - "Pipfile.lock"
+
+env:
+  python_version: 3.8
+  pipenv_version: 2020.6.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.python_version }}
+      - name: Restore cache if available
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Restore pipenv cache if available
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pipenv
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+      - name: Install dependencies
+        run: |
+          pip install "pipenv==${{ env.pipenv_version }}"
+          pipenv install
+        env:
+          PIP_EXISTS_ACTION: i
+      - name: Build documents
+        run: |
+          make doc-build
+      - name: Release documents
+        if: github.ref == 'refs/heads/master'
+        run: |
+          make doc-release
