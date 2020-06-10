@@ -20,4 +20,7 @@ doc-serve:
 
 doc-build:
 	pipenv run mkdocs build
+
+doc-release:
+	pipenv run mkdocs gh-deploy
 	
