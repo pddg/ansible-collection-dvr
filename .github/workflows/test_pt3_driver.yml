@@ -1,48 +1,54 @@
 ---
-name: lint
+name: Test pt3_driver role
 on:
   push:
     paths:
-      - 'roles/**/*.yml'
-      - 'roles/**/*.yaml'
+      - 'roles/pt3_driver/**'
       - 'Pipfile.lock'
-      - '.ansible-lint'
-      - '.yamllint'
 
 env:
   python_version: 3.8
   pipenv_version: 2020.6.2
+  role_dir: roles/pt3_driver
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
+  test_linux:
+    strategy:
+      matrix:
+        scenario:
+          - ubuntu-focal
+          - ubuntu-bionic
+          - centos-8
+          - centos-7
+    runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install python
+      - uses: actions/checkout@v2
+      - name: Use Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.python_version }}
       - name: Restore cache if available
         uses: actions/cache@v1
         with:
-          path: ~/.cache/pip
+          path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('Pipfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Restore pipenv cache if available
         uses: actions/cache@v1
         with:
-          path: ~/.cache/pipenv
+          path: ~/Library/Caches/pipenv
           key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pipenv-
+      - name: Install pipenv
+        uses: dschep/install-pipenv-action@v1
+        with:
+          version: ${{ env.pipenv_version }}
       - name: Install dependencies
-        run: |
-          pip install "pipenv==${{ env.pipenv_version }}"
-          pipenv install
+        run: pipenv sync --dev
         env:
           PIP_EXISTS_ACTION: i
-      - name: Lint
-        run: |
-          make lint
+      - name: Run provisioning
+        run: cd ${{ env.role_dir }} && pipenv run molecule test -s ${{ matrix.scenario }}
+        timeout-minutes: 15
