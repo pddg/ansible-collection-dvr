@@ -25,4 +25,5 @@ nav:
   - Introduction: 'index.md'
   - Roles:
     - preparing: 'roles/preparing.md'
+    - pt3_driver: 'roles/pt3_driver.md'
   - How to develop: 'develop.md'
