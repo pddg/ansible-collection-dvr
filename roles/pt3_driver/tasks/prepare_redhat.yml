@@ -1,0 +1,10 @@
+---
+- name: Development utilities are installed
+  package:
+    name:
+      - git
+      - gcc
+      - make
+      - "kernel-devel-{{ ansible_kernel }}"
+    state: present
+  become: yes

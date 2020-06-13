@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include pt3-driver"
+      include_role:
+        name: "pt3_driver"

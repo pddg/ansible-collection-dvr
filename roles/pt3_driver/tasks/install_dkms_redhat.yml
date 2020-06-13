@@ -1,0 +1,29 @@
+---
+- name: EPEL repository is enabled
+  package:
+    name:
+      - epel-release
+    state: present
+  become: yes
+
+- name: Workaround for "repomd.xml does not match metalink for epel" error
+  replace:
+    path: /etc/yum.repos.d/epel.repo
+    after: '\[epel\]'
+    before: '\[epel\-.*\]'
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  loop:
+    - regexp: '^#\w*(baseurl=.+)$'
+      replace: '\1'
+    - regexp: '^(metalink=.+)$'
+      replace: '#\1'
+  become: yes
+
+- name: DKMS is installed
+  package:
+    name:
+      - dkms
+    state: present
+    update_cache: yes
+  become: yes

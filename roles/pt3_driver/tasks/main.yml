@@ -1,0 +1,100 @@
+---
+- include_tasks: "tasks/prepare_{{ ansible_os_family | lower }}.yml"
+
+- name: Default earth-pt3 driver is disabled
+  kernel_blacklist:
+    name: "earth-pt3"
+    state: present
+  register: pt3_disable_default
+  become: yes
+
+- name: Reboot
+  reboot:
+    msg: "Reboot to unload earth-pt3 driver"
+  become: yes
+  when: pt3_disable_default.changed
+
+- include_tasks: "tasks/install_dkms_{{ ansible_os_family | lower }}.yml"
+
+- name: Working directory exists
+  file:
+    path: "{{ pt3_base_dir }}"
+    state: directory
+    owner: "{{ ansible_user_uid | string }}"
+    group: "{{ ansible_user_gid | string }}"
+  become: yes
+
+- name: PT3 driver repository is cloned
+  git:
+    repo: "https://github.com/m-tsudo/pt3"
+    dest: "{{ pt3_base_dir }}"
+    version: "{{ pt3_driver_version }}"
+
+- name: Ensure that pt3 driver is installed
+  command: "/sbin/modinfo pt3_drv"
+  register: pt3_installed_driver
+  changed_when: false
+  ignore_errors: true
+
+- name: Show installed driver
+  debug:
+    var: pt3_installed_driver.stdout_lines
+
+- block:
+
+  - name: PT3 driver is built
+    make:
+      chdir: "{{ pt3_base_dir }}"
+    register: pt3_drv_create
+    when: pt3_installed_driver.stderr_lines | length > 0
+
+  - name: PT3 driver is installed
+    make:
+      chdir: "{{ pt3_base_dir }}"
+      target: install
+      file: "{{ pt3_base_dir }}/Makefile"
+    register: pt3_driver_install
+    become: yes
+    when: pt3_drv_create.changed
+
+  - name: Reboot
+    reboot:
+      post_reboot_delay: 15
+    become: yes
+    when: pt3_driver_install.changed
+
+  rescue:
+    - name: Clean artifacts
+      make:
+        chdir: "{{ pt3_base_dir }}"
+        target: clean
+
+    - name: Fail
+      fail:
+        msg: "Failed to build or install pt3 driver."
+
+- name: Ensure that PT3 driver is managed by DKMS
+  shell: "dkms status | grep pt3"
+  environment:
+    PATH: "/sbin:/usr/sbin:{{ ansible_env.PATH }}"
+  register: pt3_dkms_managed
+  changed_when: false
+  ignore_errors: true
+
+- name: Show dkms managed driver
+  debug:
+    var: pt3_dkms_managed.stdout_lines
+
+- name: Ensure that DKMS manages PT3 driver
+  command: "bash ./dkms.install"
+  args:
+    chdir: "{{ pt3_base_dir }}"
+  register: pt3_enable_dkms
+  when: pt3_dkms_managed.stdout | length == 0
+  become: yes
+
+- name: Reboot
+  reboot:
+    post_reboot_delay: 15
+  become: yes
+  when: pt3_enable_dkms is succeeded and pt3_enable_dkms is not skipped
